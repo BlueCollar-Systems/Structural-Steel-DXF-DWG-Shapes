@@ -40,3 +40,8 @@ Use professional engineering judgment and verify final fabrication/construction 
 
 - Use **Code -> Download ZIP** for the full package.
 - Or download versioned assets from GitHub Releases.
+
+## Integrity Verification
+
+- Checksums are published in [CHECKSUMS.md](CHECKSUMS.md).
+- New tagged releases (`v*`) automatically publish ZIP + `SHA256SUMS.txt` via GitHub Actions.
