@@ -1,0 +1,14 @@
+# Backup files
+*.bak
+*.tmp
+
+# OS files
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# Editor/IDE
+*.swp
+*~
+.vscode/
+.idea/
