@@ -20,7 +20,7 @@ SLOPE_STD = 2.0 / 12.0 # 16.67% Slope
 def format_structural(val):
     if val is None: return "-"
     try: f = float(val)
-    except: return str(val)
+    except (ValueError, TypeError): return str(val)
     if f == 0: return "0"
     step = 1.0 / 16.0
     nearest = round(f / step) * step
@@ -33,7 +33,7 @@ def format_structural(val):
 def format_decimal(val):
     if val is None: return "-"
     try: f = float(val)
-    except: return str(val)
+    except (ValueError, TypeError): return str(val)
     return f"{f:.4f}\""
 
 def clean_float(val):
@@ -45,7 +45,7 @@ def clean_float(val):
             n, d = s.split('/')
             return float(n)/float(d)
         return float(s)
-    except: return 0.0
+    except (ValueError, TypeError, ZeroDivisionError): return 0.0
 
 def get_val(row, keys):
     for k in keys:
@@ -128,7 +128,7 @@ def solve_tan_r(k_y, slope, web_x, tip_x, tip_y):
         if abs(den) < 1e-6: return 0.0
         r = num / den
         return max(0.0, min(r, 20.0))
-    except: return 0.0
+    except (ValueError, ZeroDivisionError): return 0.0
 
 # --- SHAPE GENERATORS ---
 
@@ -240,7 +240,7 @@ def gen_2l(row, lbl):
     m = re.search(r'X(\d+/\d+|\d+\.?\d*)$', lbl) # Find last dimension
     if m:
         try: gap = clean_float(m.group(1))
-        except: pass
+        except (ValueError, TypeError): pass
         
     d = get_val(row, ['d']); b = get_val(row, ['b'])
     t = get_val(row, ['t']); k = get_val(row, ['kdes', 'kdet']) or t
@@ -331,15 +331,17 @@ def gen_round(row):
 def run():
     print("ðŸš€ GENERATING v15 BLUEPRINTS")
     if not os.path.exists(BASE_OUTPUT_DIR): os.makedirs(BASE_OUTPUT_DIR)
-    
+
     files = [f for f in os.listdir('.') if f.endswith('.csv') and 'Structural Steel' in f.lower()]
     df = pd.read_csv(files[0], low_memory=False)
     df.columns = [c.strip() for c in df.columns]
-    
+
+    total = 0; generated = 0; failed = 0
     for _, row in df.iterrows():
         lbl = str(row.get('Structural Steel_Manual_Label', '')).strip()
         fam = str(row.get('Type', '')).strip().upper()
         if not lbl or lbl == 'nan': continue
+        total += 1
 
         sub = fam
         if 'HSS' in fam: sub = 'HSS_Round' if get_val(row, ['OD']) > 0 else 'HSS_Rect'
@@ -408,11 +410,13 @@ def run():
                     for i, (l, v) in enumerate(specs):
                         f.write(f'<text x="{txt_x}" y="{txt_y+i*LINE_SPACING}" class="txt"><tspan class="lbl">{l}: </tspan>{v}</text>')
                     f.write('</svg>')
-                
-        except Exception as e:
-            pass
+                    generated += 1
 
-    print(f"âœ… COMPLETED. Output in {BASE_OUTPUT_DIR}")
+        except Exception as e:
+            failed += 1
+            print(f"  [ERROR] Shape '{lbl}': {e}")
+
+    print(f"âœ… COMPLETED. Generated {generated} of {total} shapes, {failed} failures. Output in {BASE_OUTPUT_DIR}")
 
 if __name__ == '__main__':
     run()

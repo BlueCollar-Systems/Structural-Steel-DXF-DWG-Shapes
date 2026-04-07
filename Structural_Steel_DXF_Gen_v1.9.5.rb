@@ -597,7 +597,7 @@ module AISC_DXF_Final
           end
           dxf.add_text(lbl, x, y - 5.0, TEXT_HEIGHT)
         rescue => e
-          puts "Error on #{lbl}: #{e.message}"
+          puts "  [ERROR] Shape '#{lbl}' (#{fam}): #{e.message}"
         end
         count += 1
         x += SPACING_X
